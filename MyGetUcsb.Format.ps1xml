@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Configuration>
+	<ViewDefinitions>
+		<!-- Example View: This is useful when you want to have a custom object display in a particular way on screen -->
+		<!--View>
+			<Name>PSGetItemInfo</Name>
+			<ViewSelectedBy>
+				<TypeName>Microsoft.PowerShell.Commands.PSGetItemInfo</TypeName>
+			</ViewSelectedBy>
+			<TableControl>
+				<TableHeaders>
+					<TableColumnHeader>
+						<Width>15</Width>
+					</TableColumnHeader>
+					<TableColumnHeader>
+						<Width>40</Width>
+					</TableColumnHeader>
+					<TableColumnHeader>
+						<Width>25</Width>
+					</TableColumnHeader>
+					<TableColumnHeader>
+						<Width>80</Width>
+					</TableColumnHeader>
+				</TableHeaders>
+				<TableRowEntries>
+					<TableRowEntry>
+						<TableColumnItems>
+							<TableColumnItem>
+								<PropertyName>Version</PropertyName>
+							</TableColumnItem>
+							<TableColumnItem>
+								<PropertyName>Name</PropertyName>
+							</TableColumnItem>
+							<TableColumnItem>
+								<PropertyName>DateUpdated</PropertyName>
+							</TableColumnItem>
+							<TableColumnItem>
+								<PropertyName>Description</PropertyName>
+							</TableColumnItem>
+						</TableColumnItems>
+					</TableRowEntry>
+				</TableRowEntries>
+			</TableControl>
+		</View-->
+	</ViewDefinitions>
+</Configuration>

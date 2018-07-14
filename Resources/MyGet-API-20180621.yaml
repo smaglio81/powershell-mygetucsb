@@ -1,0 +1,961 @@
+swagger: '2.0'
+info:
+  description: >-
+    This document describes the pre-release API or interacting with
+    [MyGet](https://www.myget.org). It is subject to change.
+  version: 1.0.0-preview.1
+  title: MyGet
+  termsOfService: 'https://www.myget.org/policies/terms'
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+host: sist-ucsb.myget.org
+basePath: /
+tags:
+  - name: Users
+    description: Resources related to users.
+  - name: Feeds
+    description: Resources related to feeds.
+  - name: Feed privileges
+    description: Resources related to feed privileges.
+schemes:
+  - https
+paths:
+  '/_api/v1/user/{username}':
+    get:
+      tags:
+        - Users
+      summary: Retrieve user details
+      description: >-
+        Retrieves user details for a given {username}. When the username `me` is
+        passed in, will get details for the authenticated user instead.
+      operationId: getUser
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: username
+          in: path
+          description: >-
+            The name of the user to get. When the username `me` is passed in,
+            will get details for the authenticated user instead.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: User data is returned.
+          schema:
+            $ref: '#/definitions/UserModel'
+        '401':
+          description: API call is not authenticated.
+        '403':
+          description: This operation can not be performed by the current user.
+        '404':
+          description: User does not exist.
+        '429':
+          description: Request is being throttled.
+          headers:
+            Retry-After:
+              type: integer
+              format: int32
+              description: Number of seconds to wait before attempting the request again.
+      security:
+        - oauth2:
+            - 'user:read'
+        - bearerApiKey: []
+    delete:
+      tags:
+        - Users
+      summary: Delete a user
+      description: >-
+        Deletes a user. **Note that this operation must be enabled specifically
+        for your user account by MyGet.**
+      operationId: deleteUser
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: username
+          in: path
+          description: The name of the user to delete.
+          required: true
+          type: string
+        - name: mergeIntoUser
+          in: query
+          description: The username to transfer `username`'s feeds into.
+          required: false
+          type: string
+      responses:
+        '202':
+          description: User will be deleted.
+        '400':
+          description: Validation failed.
+          schema:
+            $ref: '#/definitions/Errors'
+        '401':
+          description: API call is not authenticated.
+        '403':
+          description: This operation can not be performed by the current user.
+        '404':
+          description: User not found.
+        '429':
+          description: Request is being throttled.
+          headers:
+            Retry-After:
+              type: integer
+              format: int32
+              description: Number of seconds to wait before attempting the request again.
+      security:
+        - oauth2:
+            - 'user:write'
+        - bearerApiKey: []
+  '/_api/v1/user/{username}/feeds':
+    get:
+      tags:
+        - Users
+        - Feeds
+      summary: Retrieve feeds for a given user
+      description: >-
+        Retrieves feeds for a given {username}. When the username `me` is passed
+        in, will get details for the authenticated user instead.
+      operationId: getUserFeeds
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: username
+          in: path
+          description: >-
+            The name of the user to get details for. When the username `me` is
+            passed in, will get details for the authenticated user instead.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Feed data is returned.
+          schema:
+            $ref: '#/definitions/UserFeedsModel'
+        '401':
+          description: API call is not authenticated.
+        '403':
+          description: This operation can not be performed by the current user.
+        '404':
+          description: User does not exist.
+        '429':
+          description: Request is being throttled.
+          headers:
+            Retry-After:
+              type: integer
+              format: int32
+              description: Number of seconds to wait before attempting the request again.
+      security:
+        - oauth2:
+            - 'user:read'
+        - bearerApiKey: []
+  /_api/v1/user:
+    post:
+      tags:
+        - Users
+      summary: Create a user
+      description: >-
+        Creates a user. **Note that this operation must be enabled specifically
+        for your user account by MyGet.**
+      operationId: postUser
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: User object to create.
+          required: true
+          schema:
+            $ref: '#/definitions/WriteUserModel'
+      responses:
+        '201':
+          description: User was created.
+          schema:
+            $ref: '#/definitions/UserModel'
+          headers:
+            Location:
+              type: string
+              description: URL pointer to the newly created resource. This URL may return a not found status code for a period of time immediately after creation.
+        '400':
+          description: Validation failed.
+          schema:
+            $ref: '#/definitions/Errors'
+        '401':
+          description: API call is not authenticated.
+        '403':
+          description: This operation can not be performed by the current user.
+        '409':
+          description: User already exists.
+          schema:
+            $ref: '#/definitions/Errors'
+        '429':
+          description: Request is being throttled.
+          headers:
+            Retry-After:
+              type: integer
+              format: int32
+              description: Number of seconds to wait before attempting the request again.
+      security:
+        - oauth2:
+            - 'user:write'
+        - bearerApiKey: []
+  '/_api/v1/feed/{feedname}':
+    get:
+      tags:
+        - Feeds
+      summary: Retrieve feed details
+      description: 'Retrieves feed details for a given `{feedname}`.'
+      operationId: getFeed
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: feedname
+          in: path
+          description: The name of the feed to get details for.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Feed data is returned.
+          schema:
+            $ref: '#/definitions/FeedModel'
+        '401':
+          description: API call is not authenticated.
+        '403':
+          description: This operation can not be performed by the current user.
+        '404':
+          description: Feed does not exist.
+        '429':
+          description: Request is being throttled.
+          headers:
+            Retry-After:
+              type: integer
+              format: int32
+              description: Number of seconds to wait before attempting the request again.
+      security:
+        - oauth2:
+            - 'feed:read'
+        - bearerApiKey: []
+    put:
+      tags:
+        - Feeds
+      summary: Updates a feed
+      description: Updates a feed.
+      operationId: updateFeed
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: feedname
+          in: path
+          description: The name of the feed to update.
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Feed object to update.
+          required: true
+          schema:
+            $ref: '#/definitions/WriteFeedModel'
+      responses:
+        '202':
+          description: Feed was updated.
+        '400':
+          description: Validation failed.
+          schema:
+            $ref: '#/definitions/Errors'
+        '401':
+          description: API call is not authenticated.
+        '402':
+          description: >-
+            Feed can not be updated. The number of private feeds exceeds the
+            maximum number of allowed private feeds for the subscription.
+        '403':
+          description: This operation can not be performed by the current user.
+        '429':
+          description: Request is being throttled.
+          headers:
+            Retry-After:
+              type: integer
+              format: int32
+              description: Number of seconds to wait before attempting the request again.
+      security:
+        - oauth2:
+            - 'feed:write'
+        - bearerApiKey: []
+    delete:
+      tags:
+        - Feeds
+      summary: Deletes a feed
+      description: Deletes a feed.
+      operationId: deleteFeed
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: feedname
+          in: path
+          description: The name of the feed to delete.
+          required: true
+          type: string
+      responses:
+        '202':
+          description: Feed will be deleted (may take up to 30 minutes).
+        '400':
+          description: Validation failed.
+          schema:
+            $ref: '#/definitions/Errors'
+        '401':
+          description: API call is not authenticated.
+        '403':
+          description: This operation can not be performed by the current user.
+        '429':
+          description: Request is being throttled.
+          headers:
+            Retry-After:
+              type: integer
+              format: int32
+              description: Number of seconds to wait before attempting the request again.
+      security:
+        - oauth2:
+            - 'feed:write'
+        - bearerApiKey: []
+  /_api/v1/feed:
+    post:
+      tags:
+        - Feeds
+      summary: Create a feed
+      description: Creates a feed.
+      operationId: postFeed
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: Feed object to create.
+          required: true
+          schema:
+            $ref: '#/definitions/WriteFeedModel'
+      responses:
+        '201':
+          description: Feed was created.
+          headers:
+            Location:
+              type: string
+              description: URL pointer to the newly created resource.
+        '400':
+          description: Validation failed.
+          schema:
+            $ref: '#/definitions/Errors'
+        '401':
+          description: API call is not authenticated.
+        '402':
+          description: >-
+            Feed can not be created. The number of private feeds exceeds the
+            maximum number of allowed private feeds for the subscription.
+        '403':
+          description: This operation can not be performed by the current user.
+        '409':
+          description: Feed already exists.
+          schema:
+            $ref: '#/definitions/Errors'
+        '429':
+          description: Request is being throttled.
+          headers:
+            Retry-After:
+              type: integer
+              format: int32
+              description: Number of seconds to wait before attempting the request again.
+      security:
+        - oauth2:
+            - 'feed:write'
+        - bearerApiKey: []
+  '/_api/v1/feed/{feedname}/privileges':
+    get:
+      tags:
+        - Feed privileges
+      summary: Retrieve feed privileges
+      description: 'Retrieves feed privileges for a given `{feedname}`.'
+      operationId: getFeedPrivileges
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: feedname
+          in: path
+          description: The name of the feed to get privileges for.
+          required: true
+          type: string
+        - name: includeInvites
+          in: query
+          description: Whether to include users who have a pending invitation to the feed.
+          required: false
+          type: boolean
+      responses:
+        '200':
+          description: Feed privileges data is returned.
+          schema:
+            $ref: '#/definitions/FeedPrivilegesModel'
+        '401':
+          description: API call is not authenticated.
+        '403':
+          description: This operation can not be performed by the current user.
+        '404':
+          description: Feed does not exist.
+        '429':
+          description: Request is being throttled.
+          headers:
+            Retry-After:
+              type: integer
+              format: int32
+              description: Number of seconds to wait before attempting the request again.
+      security:
+        - oauth2:
+            - 'feed:read'
+        - bearerApiKey: []
+    post:
+      tags:
+        - Feed privileges
+      summary: Assign privileges to user on feed
+      description: >-
+        Assign privileges to user on feed. The authenticated user must be owner
+        or co-owner of the feed.
+      operationId: postFeedPrivileges
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: feedname
+          in: path
+          description: The name of the feed to create privilege on.
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Privilege to create.
+          required: true
+          schema:
+            $ref: '#/definitions/CreateFeedPrivilegeModel'
+      responses:
+        '202':
+          description: Change of privileges will be processed by the MyGet back-end.
+        '400':
+          description: Validation failed.
+          schema:
+            $ref: '#/definitions/Errors'
+        '401':
+          description: API call is not authenticated.
+        '402':
+          description: >-
+            Privileges can not be applied. The number of contributors exceeds
+            the maximum number of allowed contributors for the feed owner's
+            subscription.
+        '403':
+          description: This operation can not be performed by the current user.
+        '404':
+          description: Feed not found.
+        '409':
+          description: User already has access to the feed.
+          schema:
+            $ref: '#/definitions/Errors'
+        '429':
+          description: Request is being throttled.
+          headers:
+            Retry-After:
+              type: integer
+              format: int32
+              description: Number of seconds to wait before attempting the request again.
+      security:
+        - oauth2:
+            - 'feed:write'
+        - bearerApiKey: []
+  '/_api/v1/feed/{feedname}/privileges/{username}':
+    put:
+      tags:
+        - Feed privileges
+      summary: Update privileges for user on feed
+      description: >-
+        Update privileges for user on feed. The authenticated user must be owner
+        or co-owner of the feed.
+      operationId: updateFeedPrivilegesUser
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: feedname
+          in: path
+          description: The name of the feed.
+          required: true
+          type: string
+        - name: username
+          in: path
+          description: Username to update privileges for.
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Privilege to update.
+          required: true
+          schema:
+            $ref: '#/definitions/UpdateFeedPrivilegeModel'
+      responses:
+        '202':
+          description: Change of privileges will be processed by the MyGet back-end.
+        '400':
+          description: Validation failed.
+          schema:
+            $ref: '#/definitions/Errors'
+        '401':
+          description: API call is not authenticated.
+        '402':
+          description: >-
+            Privileges can not be applied. The number of contributors exceeds
+            the maximum number of allowed contributors for the feed owner's
+            subscription.
+        '403':
+          description: This operation can not be performed by the current user.
+        '404':
+          description: Feed not found.
+        '409':
+          description: User already has access to the feed.
+          schema:
+            $ref: '#/definitions/Errors'
+        '429':
+          description: Request is being throttled.
+          headers:
+            Retry-After:
+              type: integer
+              format: int32
+              description: Number of seconds to wait before attempting the request again.
+      security:
+        - oauth2:
+            - 'feed:write'
+        - bearerApiKey: []
+    delete:
+      tags:
+        - Feed privileges
+      summary: Delete privileges for user on feed
+      description: >-
+        Delete privileges for user on feed. The authenticated user must be owner
+        or co-owner of the feed.
+      operationId: deleteFeedPrivilegesUser
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: feedname
+          in: path
+          description: The name of the feed.
+          required: true
+          type: string
+        - name: username
+          in: path
+          description: Username to revoke privileges for.
+          required: true
+          type: string
+      responses:
+        '202':
+          description: Change of privileges will be processed by the MyGet back-end.
+        '400':
+          description: Validation failed.
+          schema:
+            $ref: '#/definitions/Errors'
+        '401':
+          description: API call is not authenticated.
+        '402':
+          description: >-
+            Privileges can not be applied. The number of contributors exceeds
+            the maximum number of allowed contributors for the feed owner's
+            subscription.
+        '403':
+          description: This operation can not be performed by the current user.
+        '404':
+          description: Feed not found.
+        '429':
+          description: Request is being throttled.
+          headers:
+            Retry-After:
+              type: integer
+              format: int32
+              description: Number of seconds to wait before attempting the request again.
+      security:
+        - oauth2:
+            - 'feed:write'
+        - bearerApiKey: []
+  '/_api/v1/feed/{feedname}/privileges/invitation/{invitation}':
+    put:
+      tags:
+        - Feed privileges
+      summary: Update privileges for invitation on feed
+      description: >-
+        Update privileges for invitation on feed. The authenticated user must be
+        owner or co-owner of the feed.
+      operationId: updateFeedPrivilegesInvitation
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: feedname
+          in: path
+          description: The name of the feed.
+          required: true
+          type: string
+        - name: invitation
+          in: path
+          description: Invitation to update privileges for.
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Privilege to update.
+          required: true
+          schema:
+            $ref: '#/definitions/UpdateFeedPrivilegeModel'
+      responses:
+        '202':
+          description: Change of privileges will be processed by the MyGet back-end.
+        '400':
+          description: Validation failed.
+          schema:
+            $ref: '#/definitions/Errors'
+        '401':
+          description: API call is not authenticated.
+        '402':
+          description: >-
+            Privileges can not be applied. The number of contributors exceeds
+            the maximum number of allowed contributors for the feed owner's
+            subscription.
+        '403':
+          description: This operation can not be performed by the current user.
+        '404':
+          description: Feed not found.
+        '429':
+          description: Request is being throttled.
+          headers:
+            Retry-After:
+              type: integer
+              format: int32
+              description: Number of seconds to wait before attempting the request again.
+      security:
+        - oauth2:
+            - 'feed:write'
+        - bearerApiKey: []
+    delete:
+      tags:
+        - Feed privileges
+      summary: Delete privileges for invitation on feed
+      description: >-
+        Delete privileges for invitation on feed. The authenticated user must be
+        owner or co-owner of the feed.
+      operationId: deleteFeedPrivilegesInvitation
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: feedname
+          in: path
+          description: The name of the feed.
+          required: true
+          type: string
+        - name: invitation
+          in: path
+          description: Invitation to revoke privileges for.
+          required: true
+          type: string
+      responses:
+        '202':
+          description: Change of privileges will be processed by the MyGet back-end.
+        '400':
+          description: Validation failed.
+          schema:
+            $ref: '#/definitions/Errors'
+        '401':
+          description: API call is not authenticated.
+        '402':
+          description: >-
+            Privileges can not be applied. The number of contributors exceeds
+            the maximum number of allowed contributors for the feed owner's
+            subscription.
+        '403':
+          description: This operation can not be performed by the current user.
+        '404':
+          description: Feed not found.
+        '429':
+          description: Request is being throttled.
+          headers:
+            Retry-After:
+              type: integer
+              format: int32
+              description: Number of seconds to wait before attempting the request again.
+      security:
+        - oauth2:
+            - 'feed:write'
+        - bearerApiKey: []
+securityDefinitions:
+  oauth2:
+    type: oauth2
+    authorizationUrl: 'https://www.myget.org/notimplementedyet'
+    flow: implicit
+    scopes:
+      'user:read': Read user-related data
+      'user:write': Write user-related data
+      'feed:read': Read feed-related data
+      'feed:write': Write feed-related data
+  bearerApiKey:
+    type: apiKey
+    name: Authorization
+    in: header
+definitions:
+  UserModel:
+    type: object
+    properties:
+      name:
+        type: string
+      username:
+        type: string
+      website:
+        type: string
+      links:
+        type: array
+        items:
+          $ref: '#/definitions/Link'
+  UserFeedsModel:
+    type: object
+    properties:
+      name:
+        type: string
+      username:
+        type: string
+      feeds:
+        type: array
+        items:
+          $ref: '#/definitions/FeedModel'
+      links:
+        type: array
+        items:
+          $ref: '#/definitions/Link'
+  WriteUserModel:
+    type: object
+    required:
+      - name
+      - email
+      - username
+      - password
+    properties:
+      name:
+        type: string
+      email:
+        type: string
+      username:
+        type: string
+      password:
+        type: string
+      website:
+        type: string
+      sendWelcomeEmail:
+        type: boolean
+      sendPasswordResetEmail:
+        type: boolean
+  FeedModel:
+    type: object
+    properties:
+      id:
+        type: string
+      description:
+        type: string
+      feedType:
+        type: string
+        enum:
+          - public
+          - private
+          - community
+          - enterprise
+        description: >-
+          Can be `public`, `private`, `community` or `enterprise` (only for
+          Enterprise plans)
+      ownerUsername:
+        type: string
+      links:
+        type: array
+        items:
+          $ref: '#/definitions/Link'
+  WriteFeedModel:
+    type: object
+    properties:
+      id:
+        type: string
+      description:
+        type: string
+      feedType:
+        type: string
+        enum:
+          - public
+          - private
+          - community
+          - enterprise
+        description: >-
+          Can be `public`, `private`, `community` or `enterprise` (only for
+          Enterprise plans)
+  FeedPrivilegesModel:
+    type: object
+    properties:
+      id:
+        type: string
+      privileges:
+        type: array
+        items:
+          $ref: '#/definitions/FeedPrivilegeModel'
+      invites:
+        type: array
+        items:
+          $ref: '#/definitions/FeedPrivilegeModel'
+      links:
+        type: array
+        items:
+          $ref: '#/definitions/Link'
+  FeedPrivilegeModel:
+    type: object
+    properties:
+      username:
+        type: string
+        description: >-
+          Note: username is only shown for existing users (typically not for
+          pending invitations)
+      email:
+        type: string
+        description: 'Note: email is only shown for pending invitations'
+      privilege:
+        type: string
+        enum:
+          - NoAccess
+          - Owner
+          - CoOwner
+          - FeedContributor
+          - PackageContributor
+          - Consumer
+          - ConsumerAfterLogin
+        description: >-
+          * `NoAccess` - Has no access to this feed
+
+          * `Owner` - Owner of this feed (all privileges)
+
+          * `CoOwner` - Can manage users and all packages for this feed
+
+          * `FeedContributor` - Can manage all packages for this feed
+
+          * `PackageContributor` - Can contribute own packages to this feed
+
+          * `Consumer` - Can consume this feed
+
+          * `ConsumerAfterLogin` - Can consume this feed only with a valid MyGet
+          login<br/>
+      invitation:
+        type: string
+        description: 'Note: invitation identifier is only shown for pending invitations'
+      links:
+        type: array
+        items:
+          $ref: '#/definitions/Link'
+  CreateFeedPrivilegeModel:
+    type: object
+    properties:
+      username:
+        type: string
+      email:
+        type: string
+      privilege:
+        type: string
+        enum:
+          - NoAccess
+          - Owner
+          - CoOwner
+          - FeedContributor
+          - PackageContributor
+          - Consumer
+          - ConsumerAfterLogin
+        description: >-
+          * `NoAccess` - Has no access to this feed
+
+          * `Owner` - Owner of this feed (all privileges)
+
+          * `CoOwner` - Can manage users and all packages for this feed
+
+          * `FeedContributor` - Can manage all packages for this feed
+
+          * `PackageContributor` - Can contribute own packages to this feed
+
+          * `Consumer` - Can consume this feed
+
+          * `ConsumerAfterLogin` - Can consume this feed only with a valid MyGet
+          login<br/>
+  UpdateFeedPrivilegeModel:
+    type: object
+    properties:
+      privilege:
+        type: string
+        enum:
+          - NoAccess
+          - Owner
+          - CoOwner
+          - FeedContributor
+          - PackageContributor
+          - Consumer
+          - ConsumerAfterLogin
+        description: >-
+          * `NoAccess` - Has no access to this feed
+
+          * `Owner` - Owner of this feed (all privileges)
+
+          * `CoOwner` - Can manage users and all packages for this feed
+
+          * `FeedContributor` - Can manage all packages for this feed
+
+          * `PackageContributor` - Can contribute own packages to this feed
+
+          * `Consumer` - Can consume this feed
+
+          * `ConsumerAfterLogin` - Can consume this feed only with a valid MyGet
+          login<br/>
+  Errors:
+    type: object
+    properties:
+      errors:
+        type: array
+        items:
+          $ref: '#/definitions/Error'
+  Error:
+    type: object
+    properties:
+      name:
+        type: string
+      messages:
+        type: array
+        items:
+          type: string
+  Link:
+    type: object
+    properties:
+      name:
+        type: string
+      url:
+        type: string
