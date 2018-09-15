@@ -6,7 +6,9 @@ $domainAdmins = Get-ADGroupMember -Identity "Domain Admins"
 
 $dgl = $developers |? { $domainAdmins.SamAccountName -notcontains $_.SamAccountName }
 $dgl = $dgl |? { $_.name -notmatch "- Admin" }
-$dgl = $dgl |? { @("names", "of", "people") -notcontains $_.name }
+$dgl = $dgl |? { @("Keri Bradford", "Jack Developer", "Ann Ricchiazzi", "Leesa Beck", "Leslie Altman", "Joe Sabado", "Diana Antova") -notcontains $_.name }
+
+$dgl = $dgl |? { @("Steven Maglio", "Jason La") -notcontains $_.Name } # already added
 
 $dgl | ft -AutoSize
 $dgl.Count
