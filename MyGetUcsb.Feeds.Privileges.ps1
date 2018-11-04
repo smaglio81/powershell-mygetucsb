@@ -80,7 +80,7 @@ Function Get-MyGetFeedPrivilege {
 [OutputType([PSCustomObject])]
 Param (
 	[Parameter(Mandatory = $true, ValueFromPipeline = $true)]
-    [ValidateSet("public","internal","internal-nonprod")]
+    [ValidateSet("public","internal","internal-nonprod","arit")]
 	[string] $Feed,
 	[Parameter(Mandatory = $false, ValueFromPipeline = $true)]
 	[switch] $IncludeInvites
@@ -177,6 +177,7 @@ Function Set-MyGetFeedUserPrivilege {
 [OutputType([PSCustomObject])]
 Param (
 	[Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+	[ValidateSet("public","internal","internal-nonprod","arit")]
 	[string] $Feed,
 	[Parameter(Mandatory = $true, ValueFromPipeline = $true)]
 	[string] $Username,

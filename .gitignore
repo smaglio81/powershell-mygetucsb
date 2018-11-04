@@ -2,6 +2,7 @@ TestTestTest*.ps1
 Scripts/20180703*
 Copy-OverLatestMyGetUcsbCode.ps1
 DeveloperScripts/Move-FromPublic-ToInternalNonProd.ps1
+*.code-workspace
 
 
 

@@ -1,9 +1,9 @@
 ﻿param(
     [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
-    [ValidateSet("public","internal","internal-nonprod")]
+    [ValidateSet("public","internal","internal-nonprod","arit")]
     [string] $FromFeed,
     [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
-    [ValidateSet("public","internal","internal-nonprod")]
+    [ValidateSet("public","internal","internal-nonprod","arit")]
     [string] $ToFeed,
     [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
     [string] $PackageName,

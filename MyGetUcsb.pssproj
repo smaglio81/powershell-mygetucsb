@@ -45,6 +45,8 @@
     <Folder Include="Resources\" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DeveloperScripts\Add-NewDeveloper.ps1" />
+    <Compile Include="DeveloperScripts\Move-FromPublic-ToInternalNonProd.ps1" />
     <Compile Include="DeveloperScripts\Move-PackageToNewFeed.ps1" />
     <Compile Include="MyGetUcsb.Packages.ps1" />
     <Compile Include="MyGetUcsb.Packages.Tests.ps1" />
